@@ -1,5 +1,6 @@
 import ecs100.*;
 import java.util.HashMap;
+import java.awt.Color;
 /**
  * Write a description of class ExamTracker here.
  *
@@ -12,6 +13,7 @@ public class ExamTracker
     private HashMap<Integer, Exam> collection;
     private int currExamId;
     private Exam currExam;
+    private Exam highlightedExam = null;
 
     /**
      * Constructors
@@ -19,6 +21,18 @@ public class ExamTracker
     public ExamTracker() {
         collection = new HashMap<Integer, Exam>();
         this.currExamId = 0;
+        
+        // GUI stuff
+        UI.initialise();
+        UI.addButton("Add exam", this::addExamFromInput);
+        UI.addButton("Find exam", this::findExamFromInput);
+        UI.addButton("Show all exams", this::printAll);
+        UI.addButton("Delete exam", this::deleteExamFromInput);
+        UI.addButton("Toggle All Exams", this::toggleAllDetails);
+        UI.addButton("Quit", UI::quit);
+        
+        drawExams();
+        
     }
     
     /**
@@ -31,10 +45,10 @@ public class ExamTracker
     /**
      * adds new exam
      */
-    public boolean addExam(String title, String date, String time, String location) {
+    public boolean addExam(String title, String date, String time, String location) {  // core class
         for (Exam exam : collection.values()) {
             if (exam.getTitle().equalsIgnoreCase(title) &&
-            exam.getDate().equalsIgnoreCase(date)) {
+                exam.getDate().equalsIgnoreCase(date)) {
                 UI.println("Exam already exists");
                 return false;
             }
@@ -49,8 +63,9 @@ public class ExamTracker
     /**
      * asks user for deatils
      */
-    public void addExamFromInput() {
-        String title = UI.askString("ENter Exam title: ");
+    public void addExamFromInput() {  // console (separation of concerns)
+        UI.clearText();
+        String title = UI.askString("Enter Exam title: ");
         String date = UI.askString("Enter Exam date (yyy-mm-dd): ");
         String time = UI.askString("Enter Exam Time (morn/aftern): ");
         String location = UI.askString("Enter Exam location: ");
@@ -61,19 +76,23 @@ public class ExamTracker
         } else {
             UI.println("Exam not added.");
         }
+        
+        drawExams();
     }
     
     /**
      * finds exam by title and date
      */
-    public boolean findExam(String title, String date) {
+    public boolean findExam(String title) {
         for (Exam exam : collection.values()) {
-            if (exam.getTitle().equalsIgnoreCase(title) &&
-            exam.getDate().equalsIgnoreCase(date)) {
+            if (exam.getTitle().equalsIgnoreCase(title)) {
                 currExam = exam;
+                highlightedExam = exam;
                 return true;
             }
         }
+        currExam = null;
+        highlightedExam = null;
         return false;
     }
     
@@ -81,25 +100,27 @@ public class ExamTracker
      * finds and display exam from user input
      */
     public void findExamFromInput() {
+        UI.clearText();
         String title = UI.askString("Enter Exam Title: ");
-        String date = UI.askString("Enter Exam Date (yyyy-mm-dd): ");
-        if (findExam(title, date)) {
+        if (findExam(title)) {
             UI.println("Exam found");
-            UI.println(currExam.toString());
+            currExam.displayExam();
+            highlightedExam = currExam;
         } else {
             UI.println("Exam not found.");
+            highlightedExam = null;
         }
+        drawExams();
     }
     
     /**
      * Deletes an exam
      */
-    public boolean deleteExam(String title, String date) {
+    public boolean deleteExam(String title) {
         for (int id : collection.keySet()) {
             Exam exam = collection.get(id);
-            if (exam.getTitle().equalsIgnoreCase(title) &&
-            exam.getDate().equalsIgnoreCase(title) &&
-            exam.getDate().equalsIgnoreCase(date)) {
+            if (exam.getTitle().equalsIgnoreCase(title)) {
+                if (highlightedExam == exam) highlightedExam = null;
                 collection.remove(id);
                 return true;
             }
@@ -111,27 +132,76 @@ public class ExamTracker
      * Deletes an exam from user input
      */
     public void deleteExamFromInput() {
+        UI.clearText();
         String title = UI.askString("Enter Exam Title to delete: ");
-        String date = UI.askString("Enter Exam Date (yyyy-mm=dd); ");
-        if (deleteExam(title, date)) {
+        if (deleteExam(title)) {
             UI.println("Exam deleted,");
         } else {
             UI.println("Exam not found.");
         }
+        drawExams();
     }
     
     /**
      * prints all exams
      */
     public void printAll() {
+        UI.clearText();
         if (collection.isEmpty()) {
             UI.println("No exams in the collection.");
             return;
         }
         
         for (Exam exam : collection.values()) {
-            UI.println(exam.toString());  //sourced from: https://www.w3schools.com/jsref/jsref_tostring_string.asp
+            exam.displayExam();  
+            UI.println("----------------------");
         }
+    }
+    
+    /**
+     * toggles details for all exams
+     */
+    public void toggleAllDetails() {
+        for (Exam exam : collection.values()) {
+            exam.toggleDetails();
+        }
+        UI.println("Details toggled for all exams");
+        drawExams();
+    }
+    
+    /**
+     * exam drawing method
+     */
+    public void drawExams() {
+        UI.clearGraphics(); 
+        int x = 50, y = 50;
+        int width = 200, height = 80;
+        int gap = 20;
+
+        for (Exam exam : collection.values()) {
+            // set border color
+            if (exam == highlightedExam) UI.setColor(Color.RED);
+            else UI.setColor(Color.BLACK);
+
+            UI.drawRect(x, y, width, height); // draw rectangle
+
+            // draw text
+            UI.setColor(Color.BLACK);
+            UI.drawString("Title: " + exam.getTitle(), x + 10, y + 20);
+            if (exam.isShowingDetails()) {
+                UI.drawString("Date: " + exam.getDate(), x + 10, y + 40);
+                UI.drawString("Time: " + exam.getTime(), x + 10, y + 60);
+            }
+
+            y += height + gap;
+        }
+    }
+    
+    /**
+     * Returns all exams as a collection
+     */
+    public HashMap<Integer, Exam> getAllExams() {
+        return collection;
     }
     
     /**
@@ -143,6 +213,7 @@ public class ExamTracker
             UI.println("\n(A)dd Exam");
             UI.println("(F)ind Exam");
             UI.println("(P)rint All exams");
+            UI.println("(T)oggle Details On/Off");
             UI.println("(D)elete Exam");
             UI.println("(Q)uit");
             
@@ -159,6 +230,8 @@ public class ExamTracker
             } else if (choice.equalsIgnoreCase("Q")) {
             UI.println("Goodbye!");
             UI.quit();
+            } else if (choice.equalsIgnoreCase("T")) {
+            toggleAllDetails();
             } else {
             UI.println("Not a valid.");
             }

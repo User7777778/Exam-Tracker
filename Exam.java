@@ -87,13 +87,16 @@ public class Exam
     /**
      * display exam details
      */
-    public void printDetails() {
-        UI.println("ID: " + id);
-        UI.println("TItle: " + title);
-        UI.println("Date: " + date);
-        UI.println("Time: " + time);
-        UI.println("Location: " + location);
-
+    public void displayExam() {
+        if (showDetails) {
+            UI.println("ID: " + id);
+            UI.println("Title: " + title);
+            UI.println("Date: " + date);
+            UI.println("Time: " + time);
+            UI.println("Location: " + location);
+        } else{
+            UI.println("Title: " + title);
+        } 
     }
 
 }
