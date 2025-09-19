@@ -26,6 +26,8 @@ public class GUI
         UI.addButton("Show all exams", this::drawExamsVisual);
         UI.addButton("Delete Exam", tracker::deleteExamFromInput);
         UI.addButton("Toggle Details", tracker::toggleAllDetails);
+        UI.addButton("Change Status", tracker::changeExamStatus);
+        UI.addButton("Sort Exams", tracker::showExamsByStatus);
         UI.addButton("Quit", UI::quit);
         
         

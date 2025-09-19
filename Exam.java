@@ -13,6 +13,11 @@ public class Exam
     private String date;
     private String time;
     private String location;
+    public static final int NOT_READY = 0;
+    public static final int MODERATELY_READY = 1;
+    public static final int READY = 2;
+    
+    private int status = NOT_READY; // default
     
     private boolean showDetails = true; //for later GUI (toggle)
     
@@ -85,6 +90,20 @@ public class Exam
     }
     
     /**
+     * gets the exam status
+     */
+    public int getStatus() {
+        return this.status;
+    }
+    
+    /**
+     * sets the exam status
+     */
+    public void setStatus(int status) {
+        this.status = status;
+    }
+    
+    /**
      * display exam details
      */
     public void displayExam() {
@@ -98,6 +117,8 @@ public class Exam
             UI.println("Title: " + title);
         } 
     }
+    
+    
 
 }
 

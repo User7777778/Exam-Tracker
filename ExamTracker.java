@@ -29,6 +29,7 @@ public class ExamTracker
         UI.addButton("Show all exams", this::printAll);
         UI.addButton("Delete exam", this::deleteExamFromInput);
         UI.addButton("Toggle All Exams", this::toggleAllDetails);
+        UI.addButton("Change status", this::changeExamStatus);
         UI.addButton("Quit", UI::quit);
         
         drawExams();
@@ -69,14 +70,44 @@ public class ExamTracker
         String date = UI.askString("Enter Exam date (yyy-mm-dd): ");
         String time = UI.askString("Enter Exam Time (morn/aftern): ");
         String location = UI.askString("Enter Exam location: ");
+        String statusInput = UI.askString("Enter readiness (ready / moderate / not): ");
         
         boolean added = addExam(title, date, time, location);
         if (added) {
+            Exam addedExam = collection.get(currExamId);
+            if (statusInput.equalsIgnoreCase("ready")) {
+                addedExam.setStatus(Exam.READY);
+            } else if (statusInput.equalsIgnoreCase("moderate")) {
+                addedExam.setStatus(Exam.MODERATELY_READY);
+            } else {
+                addedExam.setStatus(Exam.NOT_READY);
+            }
             UI.println("Exam added: " + title);
         } else {
             UI.println("Exam not added.");
         }
         
+        drawExams();
+    }
+    
+    /**
+     * exma status changer
+     */
+    public void changeExamStatus() {
+        String title = UI.askString("Enter exam title to update status: ");
+        if (findExam(title)) {
+            String statusInput = UI.askString("Enter new status (ready / moderate / not): ");
+            if (statusInput.equalsIgnoreCase("ready")) {
+                currExam.setStatus(Exam.READY);
+            } else if (statusInput.equalsIgnoreCase("moderate")) {
+                currExam.setStatus(Exam.MODERATELY_READY);
+            } else {
+                currExam.setStatus(Exam.NOT_READY);
+            }
+            UI.println("Status updated for " + currExam.getTitle());
+        } else {
+            UI.println("Exam not found");
+        }
         drawExams();
     }
     
@@ -192,11 +223,68 @@ public class ExamTracker
                 UI.drawString("Date: " + exam.getDate(), x + 10, y + 40);
                 UI.drawString("Time: " + exam.getTime(), x + 10, y + 60);
             }
+            
+            // status bar
+            if (exam.getStatus() == Exam.READY) {
+                UI.setColor(Color.GREEN);
+            } else if (exam.getStatus() == Exam.MODERATELY_READY) {
+                UI.setColor(Color.ORANGE);
+            } else {
+                UI.setColor(Color.RED);
+            }
+            UI.fillRect(x, y + height - 10, width, 10);
 
             y += height + gap;
         }
     }
     
+    /**
+     * exam sorting system
+     */
+    public void showExamsByStatus() {
+    String statusInput = UI.askString("Enter status to show (all / ready / moderate / not): ");
+    UI.clearGraphics();
+    UI.clearText();
+    int x = 50, y = 50;
+    int width = 200, height = 80;
+    int gap = 20;
+
+    for (Exam exam : collection.values()) {
+        boolean show = false;
+
+        if (statusInput.equalsIgnoreCase("all")) {
+            show = true;
+        } else if (statusInput.equalsIgnoreCase("ready") && exam.getStatus() == Exam.READY) {
+            show = true;
+        } else if (statusInput.equalsIgnoreCase("moderate") && exam.getStatus() == Exam.MODERATELY_READY) {
+            show = true;
+        } else if (statusInput.equalsIgnoreCase("not") && exam.getStatus() == Exam.NOT_READY) {
+            show = true;
+        }
+
+        if (show) {
+            UI.setColor(Color.BLACK);
+            UI.drawRect(x, y, width, height);
+            UI.drawString("Title: " + exam.getTitle(), x + 10, y + 20);
+            UI.drawString("Date: " + exam.getDate(), x + 10, y + 40);
+            UI.drawString("Time: " + exam.getTime(), x + 10, y + 60);
+
+            // status bar
+            if (exam.getStatus() == Exam.READY) {
+                UI.setColor(Color.GREEN);
+            } else if (exam.getStatus() == Exam.MODERATELY_READY) {
+                UI.setColor(Color.ORANGE);
+            } else {
+                UI.setColor(Color.RED);
+            }
+            UI.fillRect(x, y + height - 10, width, 10);
+
+            y += height + gap;
+        }
+    }
+}
+    
+
     /**
      * Returns all exams as a collection
      */
